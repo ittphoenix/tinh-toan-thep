@@ -12,10 +12,16 @@ namespace giaodien
 {
     public partial class form2: Form
     {
+        public form2(double As)
+        {
+            InitializeComponent();
+            textBox4.Text = As.ToString();
+        }
         public form2()
         {
             InitializeComponent();
         }
+       
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -48,6 +54,16 @@ namespace giaodien
         }
 
         private void label1_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox4_TextChanged(object sender, EventArgs e)
         {
 
         }

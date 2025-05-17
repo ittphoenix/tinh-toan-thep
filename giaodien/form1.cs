@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Autodesk.Revit.UI;
+using Autodesk.Revit.DB;
+using Autodesk.Revit.UI.Selection;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,15 +10,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Security.Cryptography.X509Certificates;
+
 
 namespace giaodien
 {
-    public partial class form1: Form
+    public partial class form1 : System.Windows.Forms.Form
 
     {
-        public form1()
+        private UIDocument _uidoc;
+
+        public form1(UIDocument uidoc)
         {
             InitializeComponent();
+            _uidoc = uidoc;
+        }
+
+        public form1()
+        {
+
         }
 
         private void tinhtoandam_Load(object sender, EventArgs e)
@@ -25,7 +38,54 @@ namespace giaodien
 
         private void button1_Click(object sender, EventArgs e)
         {
+            this.Hide();
+            try
+            {
 
+                IList<Reference> pickedRefs = _uidoc.Selection.PickObjects(ObjectType.Element, "Chọn các dầm");
+                foreach (Reference reference in pickedRefs)
+                {
+                    Element element = _uidoc.Document.GetElement(reference);
+                    if (element is FamilyInstance beam)
+                    {
+                        LocationCurve location = beam.Location as LocationCurve;
+                        if (location == null || location.Curve == null)
+                        {
+                            MessageBox.Show("doi tuong khong hop le");
+                            continue;
+                        }
+                        double L = location.Curve.Length;
+                        double b = GetParamValue(beam, "b");
+                        double h = GetParamValue(beam, "h");
+
+                        textBox1.Text = (b / 3.048).ToString("F3");
+                        textBox2.Text = (h / 3.048).ToString("F3");
+                        textBox3.Text = (L * 0.3048).ToString("F3");
+                    }
+                    else 
+                    {
+                        MessageBox.Show("doi tuong khong hop le");
+                    }
+                    
+
+                }
+            }
+            catch (Autodesk.Revit.Exceptions.OperationCanceledException)
+            {
+                TaskDialog.Show("Huỷ", "da chon 0 dam");
+            }
+            this.Show();
+        }
+        private double GetParamValue(FamilyInstance fi, string paramName)
+        {
+            Parameter param = fi.Symbol.LookupParameter(paramName);
+            if (param != null && param.StorageType == StorageType.Double)
+            {
+                return param.AsDouble(); 
+            }
+            return 0;
+
+            
         }
 
         private void label7_Click(object sender, EventArgs e)
@@ -125,11 +185,93 @@ namespace giaodien
 
         private void button2_Click(object sender, EventArgs e)
         {
-            form2 form2 = new form2();
+            this.Hide();
+            double M, N, Q;
+            GetDoubleFromTextBox(textBox4, out M);
+            GetDoubleFromTextBox(textBox5, out N);
+            GetDoubleFromTextBox(textBox6, out Q);
+
+            double Rb, Rbt, Rs, a;
+            GetDoubleFromTextBox(textBox13, out Rb);
+            GetDoubleFromTextBox(textBox14, out Rbt);
+            GetDoubleFromTextBox(textBox15, out Rs);
+            GetDoubleFromTextBox(textBox7, out a); // chieu day lop bao ve
+
+            double b, h, L;
+            GetDoubleFromTextBox(textBox1, out b);
+            GetDoubleFromTextBox(textBox2, out h);
+            GetDoubleFromTextBox(textBox3, out L);
+
+            double As = CalculateAs(M, Rb, b, h, a);
+
+            form2 form2 = new form2(As);
             form2.Show();
+
+            
+        }
+        private double CalculateAs(double M, double Rb, double b, double h, double a)
+        {
+           
+            double h0 = h - a;
+            double As = M / (Rb * b * h0);
+
+            return As;
+
+
+
+
+        }
+        private void GetDoubleFromTextBox(System.Windows.Forms.TextBox textBox, out double value)
+        {
+            if (!double.TryParse(textBox.Text, out value))
+            {
+                MessageBox.Show("Vui lòng nhập gia trị hợp lệ");
+                value = 0;
+                
+            }
         }
 
         private void label31_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox3_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox4_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox5_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox6_TextChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void comboBox3_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox7_TextChanged(object sender, EventArgs e)
         {
 
         }

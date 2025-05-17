@@ -14,8 +14,12 @@ namespace giaodien
     {
         public Result Execute(ExternalCommandData commandData, ref string message, ElementSet elements)
         {
-            form1 form1 = new form1();
-            form1.ShowDialog();
+            UIDocument uidoc = commandData.Application.ActiveUIDocument;
+            Document doc = uidoc.Document;
+            form1 form1 = new form1(uidoc);
+            form1.Show();
+            
+
             return Result.Succeeded;
         }
     }
