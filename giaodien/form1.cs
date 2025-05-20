@@ -202,7 +202,7 @@ namespace giaodien
 
             double As = CalculateAs(M, Rb, b, h, a, Rs);
 
-            form2 form2 = new form2(As, h);
+            form2 form2 = new form2(As, h, L);
             form2.Show();
 
             

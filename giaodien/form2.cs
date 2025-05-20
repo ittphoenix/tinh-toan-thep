@@ -15,10 +15,12 @@ namespace giaodien
     public partial class form2: System.Windows.Forms.Form
     {
         private double chieucaodam;
-        public form2(double As, double h) 
+        private double chieudaidam;
+        public form2(double As, double h, double L)
         {
             InitializeComponent();
             chieucaodam = h;
+            chieudaidam = L;
             textBox4.Text = As.ToString("F0");
         }
         private LocationCurve locCurve;
@@ -26,7 +28,9 @@ namespace giaodien
         {
             InitializeComponent();
             locCurve = location;
+
         }
+        public LocationCurve BeamLocation { get; set; }
         private void Form1_Load(object sender, EventArgs e)
         {
 
@@ -146,20 +150,27 @@ namespace giaodien
             GetIntFromComboBox(comboBox2, out d2);
             GetIntFromComboBox(comboBox3, out s1);
             GetIntFromComboBox(comboBox4, out s2);
-            double c; // lớp bảo vệ
+            double c, v; // lớp bảo vệ,kcach giữa các cốt thép
             GetDoubleFromTextBox(textBox2, out c);
-            Curve loCurve = locCurve.Curve;
+            GetDoubleFromTextBox(textBox5, out v);
+            if (BeamLocation == null || BeamLocation.Curve == null)
+            {
+                MessageBox.Show("Không có LocationCurve từ dầm được chọn.");
+                return;
+            }
+            Curve loCurve = BeamLocation.Curve;
             XYZ point1 = loCurve.GetEndPoint(0);
             XYZ point2 = loCurve.GetEndPoint(1);
             XYZ direction = (point2 - point1).Normalize();
             XYZ up = XYZ.BasisZ;
             XYZ right = direction.CrossProduct(up).Normalize();
-            XYZ GetBarPosition(int i, int S, double v, double chieucaodam, bool tren)
+            XYZ GetBarPosition(int i, int S, double V, double chieucaodam, bool tren)
             {
-                double offsetY = -((S - 1) * v) / 2 + i * v;
+                double offsetY = -((S - 1) * V) / 2 + i * v;
                 double offsetZ = tren ? chieucaodam - c : c;
                 return point1 + right * offsetY + up * offsetZ;
             }
+            List<Rebar> rebar = new List<Rebar>();
             Document doc = null;
             using (Transaction trans = new Transaction(doc, "ve thep doc"))
             {
@@ -170,8 +181,17 @@ namespace giaodien
                 .FirstOrDefault(bt => Math.Abs(bt.BarNominalDiameter - (s1 / 1000.0)) < 0.0001); 
                 for(int i = 0; i < s1; i++)
                 {
-                    XYZ position = GetBarPosition(i, s1, d1, chieucaodam, true);
-                    Rebar rebar = Rebar.Create(doc, barType, locCurve, position, RebarHookOrientation.Right, RebarHookOrientation.Right);
+                    XYZ start = GetBarPosition(i, s1, v / 304.8, 0.4, true);
+                    XYZ end = start + direction * chieudaidam;
+                    Line rebarline = Line.CreateBound(start, end);
+                    if (barType != null)
+                    {
+                        Rebar newRebar = Rebar.CreateFromCurves(doc, RebarStyle.Standard, barType, null, null, null, direction, new List<Curve> { rebarline }, RebarHookOrientation.Left, RebarHookOrientation.Left, false, true);
+                        if (newRebar != null)
+                        {
+                            rebar.Add(newRebar);
+                        }
+                    }
                 }
 
 
@@ -182,6 +202,11 @@ namespace giaodien
         
 
         private void textBox2_TextChanged_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void textBox5_TextChanged(object sender, EventArgs e)
         {
 
         }
