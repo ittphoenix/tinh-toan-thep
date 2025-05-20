@@ -53,20 +53,22 @@ namespace giaodien
                         {
                             MessageBox.Show("doi tuong khong hop le");
                             continue;
+                            form2 form2 = new form2(location);
+
                         }
                         double L = location.Curve.Length;
                         double b = GetParamValue(beam, "b");
-                        double h = GetParamValue(beam, "h");
-
-                        textBox1.Text = (b / 3.048).ToString("F3");
-                        textBox2.Text = (h / 3.048).ToString("F3");
-                        textBox3.Text = (L * 0.3048).ToString("F3");
+                        double h = GetParamValue(beam, "h"); 
+                        textBox1.Text = (b * 304.8).ToString("F0");
+                        textBox2.Text = (h * 304.8).ToString("F0");
+                        textBox3.Text = (L * 304.8).ToString("F0");
                     }
                     else 
                     {
                         MessageBox.Show("doi tuong khong hop le");
                     }
                     
+
 
                 }
             }
@@ -186,34 +188,32 @@ namespace giaodien
         private void button2_Click(object sender, EventArgs e)
         {
             this.Hide();
-            double M, N, Q;
-            GetDoubleFromTextBox(textBox4, out M);
-            GetDoubleFromTextBox(textBox5, out N);
-            GetDoubleFromTextBox(textBox6, out Q);
-
             double Rb, Rbt, Rs, a;
             GetDoubleFromTextBox(textBox13, out Rb);
             GetDoubleFromTextBox(textBox14, out Rbt);
             GetDoubleFromTextBox(textBox15, out Rs);
-            GetDoubleFromTextBox(textBox7, out a); // chieu day lop bao ve
+            GetDoubleFromTextBox(textBox7, out a); // khoảng cách từ trọng tâm cốt thép đến đáy dầm
 
-            double b, h, L;
+            double b, h, L, M;
             GetDoubleFromTextBox(textBox1, out b);
             GetDoubleFromTextBox(textBox2, out h);
             GetDoubleFromTextBox(textBox3, out L);
+            GetDoubleFromTextBox(textBox4, out M);
 
-            double As = CalculateAs(M, Rb, b, h, a);
+            double As = CalculateAs(M, Rb, b, h, a, Rs);
 
-            form2 form2 = new form2(As);
+            form2 form2 = new form2(As, h);
             form2.Show();
 
             
         }
-        private double CalculateAs(double M, double Rb, double b, double h, double a)
+        private double CalculateAs(double M, double Rb, double b, double h, double a, double Rs)
         {
            
             double h0 = h - a;
-            double As = M / (Rb * b * h0);
+            double x = (M / (Rb * b * h0 * h0)) * 1000000;
+            double ξ = 1 - Math.Sqrt(1 - 2 * x);
+            double As = (0.9 * Rb * b * h0 * ξ) / Rs;
 
             return As;
 
